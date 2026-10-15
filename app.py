@@ -926,10 +926,7 @@ with assistant_left:
             )
 
         # Keep the existing outer else aligned with its matching if.
-        else:
-            st.info(
-                "Movie of the Day ke liye sufficient movie data available nahi hai."
-            )
+        
 
 with assistant_right:
     st.markdown(

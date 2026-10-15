@@ -892,33 +892,44 @@ with assistant_left:
                     unsafe_allow_html=True,
                 )
 
+     
         with details_col:
-            st.markdown(f"#### {escape(featured_title)}")
-            year_text = featured_year if featured_year not in {"", "nan", "None"} else "Year unavailable"
+            st.markdown(f"### {escape(featured_title)}")
+
+            year_text = (
+                featured_year
+                if featured_year not in {"", "nan", "None"}
+                else "Year unavailable"
+            )
             st.caption(f"📅 {escape(year_text)}")
             st.write(f"**Genre:** {escape(featured_genres)}")
+
             try:
-                st.write(f"⭐ **Rating:** {float(featured_rating):.1f}/10")
+                st.write(
+                    f"⭐ **Rating:** {float(featured_rating):.1f}/10"
+                )
             except (TypeError, ValueError):
                 st.write("⭐ **Rating:** Unavailable")
 
-               st.link_button(
-            "🔎 Search Movie on Google",
-            "https://www.google.com/search?q="
-            + urllib.parse.quote_plus(
+            google_query = (
                 f"{featured_title} movie plot cast release year"
-            ),
-            use_container_width=True,
-        ) 
-        
-        if (
-            st.session_state.get("aod_title") == featured_title
-            and st.session_state.get("aod_explanation")
-        ):
-            st.markdown("##### 🤖 CineMatch AI Explanation")
-            st.write(st.session_state["aod_explanation"])
-    else:
-        st.info("Movie of the Day ke liye sufficient movie data available nahi hai.")
+            )
+            google_url = (
+                "https://www.google.com/search?q="
+                + urllib.parse.quote_plus(google_query)
+            )
+
+            st.link_button(
+                "🔎 Search Movie on Google",
+                google_url,
+                use_container_width=True,
+            )
+
+        # Keep the existing outer else aligned with its matching if.
+        else:
+            st.info(
+                "Movie of the Day ke liye sufficient movie data available nahi hai."
+            )
 
 with assistant_right:
     st.markdown(

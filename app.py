@@ -902,27 +902,16 @@ with assistant_left:
             except (TypeError, ValueError):
                 st.write("⭐ **Rating:** Unavailable")
 
-        if st.button(
-            "✨ Explain with CineMatch AI",
-            key="explain_movie_of_day_button",
-            use_container_width=True,
-        ):
-            with st.spinner(f"Qwen is explaining {featured_title}..."):
-                try:
-                    featured_explanation = explain_movie(
-                        title=featured_title,
-                        overview=featured_overview,
-                        genres=featured_genres,
-                        year=featured_year,
-                        rating=str(featured_rating),
-                        question=(
-                            "Explain this movie's premise using only the supplied overview. "
-                            "Describe its genre and mood, and say what kind of viewer may enjoy it. "
-                            "Do not invent cast, director, awards, ratings sources, or plot details."
-                        ),
-                    )
-                    st.session_state["aod_explanation"] = featured_explanation
-                    st.session_state["aod_title"] = featured_title
+       if st.link_button(
+    "🔎 Search Movie on Google",
+    "https://www.google.com/search?q="
+    + urllib.parse.quote_plus(
+        f"{featured_title} movie plot cast release year"
+    ),
+    use_container_width=True,
+):
+    pass 
+        
                 except Exception as error:
                     st.error("Movie explanation generate nahi ho payi.")
                     st.exception(error)

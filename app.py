@@ -1002,37 +1002,27 @@ with assistant_right:
                     row, "release_year", "Unavailable"
                 )
 
-                st.markdown("### 🤖 CineMatch AI Explanation")
+                st.markdown("### 🔎 Search Movie Information")
 
-                st.caption(
-                    f"Movie: {selected_title} · Powered by your local Qwen model"
-                )
+st.caption(
+    f"Search Google for information about {selected_title}."
+)
 
-                with st.spinner(
-                        f"CineMatch AI is explaining {selected_title}..."
-                ):
-                    try:
-                        explanation = explain_movie(
-                            title=selected_title,
-                            overview=str(movie_overview),
-                            genres=str(movie_genres),
-                            year=str(movie_year),
-                            rating=str(movie_rating),
-                            question=question,
-                        )
+google_query = (
+    f"{selected_title} movie plot cast release year "
+    f"{movie_genres}"
+)
 
-                        st.markdown(
-                            f"""
-                            <div class="ai-panel">
-                                <div class="ai-title">
-                                    🎬 {escape(selected_title)}
-                                </div>
-                                <br>
-                                {escape(explanation).replace(chr(10), '<br>')}
-                            </div>
-                            """,
-                            unsafe_allow_html=True,
-                        )
+google_url = (
+    "https://www.google.com/search?q="
+    + urllib.parse.quote_plus(google_query)
+)
+
+st.link_button(
+    "🔎 Search on Google",
+    google_url,
+    use_container_width=True,
+)
 
                     except Exception as error:
                         st.error("Movie explanation generate nahi ho payi.")

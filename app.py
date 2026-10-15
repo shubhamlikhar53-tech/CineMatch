@@ -902,19 +902,17 @@ with assistant_left:
             except (TypeError, ValueError):
                 st.write("⭐ **Rating:** Unavailable")
 
-       if st.link_button(
-    "🔎 Search Movie on Google",
-    "https://www.google.com/search?q="
-    + urllib.parse.quote_plus(
-        f"{featured_title} movie plot cast release year"
-    ),
-    use_container_width=True,
-):
+               st.link_button(
+            "🔎 Search Movie on Google",
+            "https://www.google.com/search?q="
+            + urllib.parse.quote_plus(
+                f"{featured_title} movie plot cast release year"
+            ),
+            use_container_width=True,
+        )
     pass 
         
-                except Exception as error:
-                    st.error("Movie explanation generate nahi ho payi.")
-                    st.exception(error)
+               
 
         if (
             st.session_state.get("aod_title") == featured_title

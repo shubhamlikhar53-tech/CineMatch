@@ -1,19 +1,22 @@
 import torch
+import streamlit as st
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 # Hugging Face model
 MODEL_NAME = "Qwen/Qwen2.5-0.5B-Instruct"
 
-print("Loading CineMatch AI model...")
 
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+@st.cache_resource(show_spinner="Loading CineMatch AI model...")
+def load_cinematch_model():
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 
-model = AutoModelForCausalLM.from_pretrained(
-    MODEL_NAME,
-    torch_dtype=torch.float32
-)
+    model = AutoModelForCausalLM.from_pretrained(
+        MODEL_NAME,
+        torch_dtype=torch.float32
+    )
 
-model.eval()
+    model.eval()
+    return tokenizer, model
 
 print("CineMatch AI model loaded successfully!")
 

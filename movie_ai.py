@@ -27,9 +27,11 @@ def explain_movie(
     genres="Unknown",
     year="Unknown",
     rating="Unknown",
-    question=None,
-    tokenizer, model = load_cinematch_model()
+    question=None
 ):
+    tokenizer, model = load_cinematch_model()
+
+    # Baaki existing function code yahin se continue hoga
     """
     Generate a movie explanation using the local Hugging Face model.
     No external inference API is used.

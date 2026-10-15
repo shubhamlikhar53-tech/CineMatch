@@ -8,22 +8,7 @@ import scipy.sparse as sparse
 import streamlit as st
 from sklearn.metrics.pairwise import cosine_similarity
 from movie_ai import explain_movie
-import urllib.parse
-import streamlit as st
 
-# Google Movie Search
-search_query = f"{selected_title} movie plot cast release year"
-
-google_url = (
-    "https://www.google.com/search?q="
-    + urllib.parse.quote_plus(search_query)
-)
-
-st.link_button(
-    "🔎 Search Movie on Google",
-    google_url,
-    use_container_width=True
-)
 # ==========================================
 # 1. PAGE CONFIGURATION
 # ==========================================
@@ -563,41 +548,56 @@ except Exception as error:
         "same project root mein hai aur saved model files usmein hain."
     )
     st.stop()
-
 # ==========================================
 # LOAD MOVIE RELEASE YEARS
 # ==========================================
 
-YEAR_FILE = Path(__file__).resolve().parent / "movie_years.csv"
+CSV_PATH = Path(
+    r"C:\Users\Lenovo\100days of Machine Learning\preprocessing\TMDB_movie_dataset_v11.csv"
+)
+
 
 @st.cache_data(show_spinner="Loading movie release years...")
-def load_release_years(year_file):
-    year_df = pd.read_csv(year_file)
+def load_release_years(csv_path):
+    release_year_map = {}
 
-    year_df["id"] = pd.to_numeric(year_df["id"], errors="coerce")
-    year_df["release_year"] = pd.to_numeric(
-        year_df["release_year"], errors="coerce"
-    )
-
-    year_df = year_df.dropna(
-        subset=["id", "release_year"]
-    ).drop_duplicates(subset=["id"])
-
-    return dict(
-        zip(
-            year_df["id"].astype(int),
-            year_df["release_year"].astype(int)
+    for chunk in pd.read_csv(
+        csv_path,
+        usecols=["id", "release_date"],
+        chunksize=5000,
+        on_bad_lines="skip",
+    ):
+        chunk["id"] = pd.to_numeric(
+            chunk["id"], errors="coerce"
         )
-    )
+
+        chunk["release_date"] = pd.to_datetime(
+            chunk["release_date"], errors="coerce"
+        )
+
+        chunk = chunk.dropna(subset=["id"])
+
+        chunk["release_year"] = chunk["release_date"].dt.year
+
+        chunk = chunk.drop_duplicates(subset=["id"])
+
+        release_year_map.update(
+            chunk.set_index("id")["release_year"].to_dict()
+        )
+
+    return release_year_map
+
 
 try:
-    if not YEAR_FILE.exists():
-        raise FileNotFoundError(f"File not found: {YEAR_FILE}")
+    release_year_map = load_release_years(str(CSV_PATH))
 
-    release_year_map = load_release_years(str(YEAR_FILE))
+    movies["id"] = pd.to_numeric(
+        movies["id"], errors="coerce"
+    )
 
-    movies["id"] = pd.to_numeric(movies["id"], errors="coerce")
-    movies["release_year"] = movies["id"].map(release_year_map)
+    movies["release_year"] = movies["id"].map(
+        release_year_map
+    )
 
     print("Release years matched:", movies["release_year"].notna().sum())
 
@@ -892,41 +892,49 @@ with assistant_left:
                     unsafe_allow_html=True,
                 )
 
-     
         with details_col:
-            st.markdown(f"### {escape(featured_title)}")
-
-            year_text = (
-                featured_year
-                if featured_year not in {"", "nan", "None"}
-                else "Year unavailable"
-            )
+            st.markdown(f"#### {escape(featured_title)}")
+            year_text = featured_year if featured_year not in {"", "nan", "None"} else "Year unavailable"
             st.caption(f"📅 {escape(year_text)}")
             st.write(f"**Genre:** {escape(featured_genres)}")
-
             try:
-                st.write(
-                    f"⭐ **Rating:** {float(featured_rating):.1f}/10"
-                )
+                st.write(f"⭐ **Rating:** {float(featured_rating):.1f}/10")
             except (TypeError, ValueError):
                 st.write("⭐ **Rating:** Unavailable")
 
-            google_query = (
-                f"{featured_title} movie plot cast release year"
-            )
-            google_url = (
-                "https://www.google.com/search?q="
-                + urllib.parse.quote_plus(google_query)
-            )
+        if st.button(
+            "✨ Explain with CineMatch AI",
+            key="explain_movie_of_day_button",
+            use_container_width=True,
+        ):
+            with st.spinner(f"Qwen is explaining {featured_title}..."):
+                try:
+                    featured_explanation = explain_movie(
+                        title=featured_title,
+                        overview=featured_overview,
+                        genres=featured_genres,
+                        year=featured_year,
+                        rating=str(featured_rating),
+                        question=(
+                            "Explain this movie's premise using only the supplied overview. "
+                            "Describe its genre and mood, and say what kind of viewer may enjoy it. "
+                            "Do not invent cast, director, awards, ratings sources, or plot details."
+                        ),
+                    )
+                    st.session_state["aod_explanation"] = featured_explanation
+                    st.session_state["aod_title"] = featured_title
+                except Exception as error:
+                    st.error("Movie explanation generate nahi ho payi.")
+                    st.exception(error)
 
-            st.link_button(
-                "🔎 Search Movie on Google",
-                google_url,
-                use_container_width=True,
-            )
-
-        # Keep the existing outer else aligned with its matching if.
-        
+        if (
+            st.session_state.get("aod_title") == featured_title
+            and st.session_state.get("aod_explanation")
+        ):
+            st.markdown("##### 🤖 CineMatch AI Explanation")
+            st.write(st.session_state["aod_explanation"])
+    else:
+        st.info("Movie of the Day ke liye sufficient movie data available nahi hai.")
 
 with assistant_right:
     st.markdown(
@@ -1005,29 +1013,41 @@ with assistant_right:
                     row, "release_year", "Unavailable"
                 )
 
-                st.markdown("### 🔎 Search Movie Information")
+                st.markdown("### 🤖 CineMatch AI Explanation")
 
-st.caption(
-    f"Search Google for information about {selected_title}."
-)
+                st.caption(
+                    f"Movie: {selected_title} · Powered by your local Qwen model"
+                )
 
-google_query = (
-    f"{selected_title} movie plot cast release year "
-    f"{movie_genres}"
-)
+                with st.spinner(
+                        f"CineMatch AI is explaining {selected_title}..."
+                ):
+                    try:
+                        explanation = explain_movie(
+                            title=selected_title,
+                            overview=str(movie_overview),
+                            genres=str(movie_genres),
+                            year=str(movie_year),
+                            rating=str(movie_rating),
+                            question=question,
+                        )
 
-google_url = (
-    "https://www.google.com/search?q="
-    + urllib.parse.quote_plus(google_query)
-)
+                        st.markdown(
+                            f"""
+                            <div class="ai-panel">
+                                <div class="ai-title">
+                                    🎬 {escape(selected_title)}
+                                </div>
+                                <br>
+                                {escape(explanation).replace(chr(10), '<br>')}
+                            </div>
+                            """,
+                            unsafe_allow_html=True,
+                        )
 
-st.link_button(
-    "🔎 Search on Google",
-    google_url,
-    use_container_width=True,
-)
-
-                   
+                    except Exception as error:
+                        st.error("Movie explanation generate nahi ho payi.")
+                        st.exception(error)
 
             # -----------------------------------------
             # 3. Otherwise, search by genre or mood

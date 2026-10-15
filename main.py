@@ -14,37 +14,35 @@ from pathlib import Path
 # LOAD MOVIE RELEASE YEARS
 # ==========================================
 
-CSV_PATH = Path(
-    r"C:\Users\Lenovo\100days of Machine Learning\preprocessing\TMDB_movie_dataset_v11.csv"
-)
+
+YEAR_FILE = Path(__file__).resolve().parent / "movie_years.csv"
 
 release_year_map = {}
 
-for chunk in pd.read_csv(
-    CSV_PATH,
-    usecols=["id", "release_date"],
-    chunksize=5000,
-    low_memory=True,
-    on_bad_lines="skip"
-):
-    chunk["id"] = pd.to_numeric(
-        chunk["id"], errors="coerce"
+if YEAR_FILE.exists():
+    year_df = pd.read_csv(YEAR_FILE)
+
+    year_df["id"] = pd.to_numeric(
+        year_df["id"], errors="coerce"
+    )
+    year_df["release_year"] = pd.to_numeric(
+        year_df["release_year"], errors="coerce"
     )
 
-    chunk["release_date"] = pd.to_datetime(
-        chunk["release_date"], errors="coerce"
+    year_df = year_df.dropna(
+        subset=["id", "release_year"]
+    ).drop_duplicates("id")
+
+    release_year_map = dict(
+        zip(
+            year_df["id"].astype(int),
+            year_df["release_year"].astype(int)
+        )
     )
 
-    chunk["release_year"] = chunk["release_date"].dt.year
-
-    chunk = chunk.dropna(subset=["id"])
-    chunk = chunk.drop_duplicates(subset=["id"])
-
-    release_year_map.update(
-        chunk.set_index("id")["release_year"].to_dict()
-    )
-
-print("✅ Release years loaded:", len(release_year_map))
+    print("Release years loaded:", len(release_year_map))
+else:
+    print("movie_years.csv not found; years unavailable.")
 # ==========================================
 # 1. MODEL DIRECTORY
 # ==========================================

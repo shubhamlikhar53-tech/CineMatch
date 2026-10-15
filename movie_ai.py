@@ -11,9 +11,10 @@ def load_cinematch_model():
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 
     model = AutoModelForCausalLM.from_pretrained(
-        MODEL_NAME,
-        torch_dtype=torch.float32
-    )
+    MODEL_NAME,
+    torch_dtype=torch.float32,
+    low_cpu_mem_usage=True
+)
 
     model.eval()
     return tokenizer, model

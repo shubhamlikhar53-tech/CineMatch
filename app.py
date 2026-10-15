@@ -8,7 +8,22 @@ import scipy.sparse as sparse
 import streamlit as st
 from sklearn.metrics.pairwise import cosine_similarity
 from movie_ai import explain_movie
+import urllib.parse
+import streamlit as st
 
+# Google Movie Search
+search_query = f"{selected_title} movie plot cast release year"
+
+google_url = (
+    "https://www.google.com/search?q="
+    + urllib.parse.quote_plus(search_query)
+)
+
+st.link_button(
+    "🔎 Search Movie on Google",
+    google_url,
+    use_container_width=True
+)
 # ==========================================
 # 1. PAGE CONFIGURATION
 # ==========================================

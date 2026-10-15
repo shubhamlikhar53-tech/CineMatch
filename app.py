@@ -1027,9 +1027,7 @@ st.link_button(
     use_container_width=True,
 )
 
-                    except Exception as error:
-                        st.error("Movie explanation generate nahi ho payi.")
-                        st.exception(error)
+                   
 
             # -----------------------------------------
             # 3. Otherwise, search by genre or mood

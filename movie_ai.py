@@ -28,6 +28,7 @@ def explain_movie(
     year="Unknown",
     rating="Unknown",
     question=None
+    tokenizer, model = load_cinematch_model()
 ):
     """
     Generate a movie explanation using the local Hugging Face model.

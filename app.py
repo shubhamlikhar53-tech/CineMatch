@@ -909,11 +909,8 @@ with assistant_left:
                 f"{featured_title} movie plot cast release year"
             ),
             use_container_width=True,
-        )
-    pass 
+        ) 
         
-               
-
         if (
             st.session_state.get("aod_title") == featured_title
             and st.session_state.get("aod_explanation")

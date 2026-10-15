@@ -27,7 +27,7 @@ def explain_movie(
     genres="Unknown",
     year="Unknown",
     rating="Unknown",
-    question=None
+    question=None,
     tokenizer, model = load_cinematch_model()
 ):
     """

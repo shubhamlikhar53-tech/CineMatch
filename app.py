@@ -551,58 +551,66 @@ except Exception as error:
 # ==========================================
 # LOAD MOVIE RELEASE YEARS
 # ==========================================
+# ==========================================
+# LOAD MOVIE RELEASE YEARS
+# ==========================================
 
-CSV_PATH = Path(
-    r"C:\Users\Lenovo\100days of Machine Learning\preprocessing\TMDB_movie_dataset_v11.csv"
-)
+CSV_PATH = Path(__file__).resolve().parent / "movie_years.csv"
 
 
 @st.cache_data(show_spinner="Loading movie release years...")
 def load_release_years(csv_path):
-    release_year_map = {}
-
-    for chunk in pd.read_csv(
+    # movie_years.csv contains two columns:
+    # movie ID and release year, without a header row.
+    year_df = pd.read_csv(
         csv_path,
-        usecols=["id", "release_date"],
-        chunksize=5000,
-        on_bad_lines="skip",
-    ):
-        chunk["id"] = pd.to_numeric(
-            chunk["id"], errors="coerce"
-        )
+        header=None,
+        names=["id", "release_year"]
+    )
 
-        chunk["release_date"] = pd.to_datetime(
-            chunk["release_date"], errors="coerce"
-        )
+    year_df["id"] = pd.to_numeric(
+        year_df["id"],
+        errors="coerce"
+    )
 
-        chunk = chunk.dropna(subset=["id"])
+    year_df["release_year"] = pd.to_numeric(
+        year_df["release_year"],
+        errors="coerce"
+    )
 
-        chunk["release_year"] = chunk["release_date"].dt.year
+    year_df = year_df.dropna(
+        subset=["id", "release_year"]
+    )
 
-        chunk = chunk.drop_duplicates(subset=["id"])
+    year_df = year_df.drop_duplicates(
+        subset=["id"],
+        keep="first"
+    )
 
-        release_year_map.update(
-            chunk.set_index("id")["release_year"].to_dict()
-        )
-
-    return release_year_map
+    return year_df.set_index("id")["release_year"].to_dict()
 
 
 try:
     release_year_map = load_release_years(str(CSV_PATH))
 
     movies["id"] = pd.to_numeric(
-        movies["id"], errors="coerce"
+        movies["id"],
+        errors="coerce"
     )
 
     movies["release_year"] = movies["id"].map(
         release_year_map
     )
 
-    print("Release years matched:", movies["release_year"].notna().sum())
+    print(
+        "Release years matched:",
+        movies["release_year"].notna().sum()
+    )
 
 except Exception as error:
-    st.warning(f"Release years could not be loaded: {error}")
+    st.warning(
+        f"Movie release years could not be loaded: {error}"
+    )
 # ==========================================
 # 4. HELPER FUNCTIONS
 # ==========================================
